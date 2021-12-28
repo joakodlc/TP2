@@ -232,6 +232,9 @@ void imprimirgrafico(EPersona lista[20])
     init(lista3);
     listasPorEdades(lista, lista1, lista2, lista3);
 
+    printf("Grafico de edades: \n \n");
+    printf("<18   19-35  >35 \n");
+
     for (int i = 0; i < MAX; i++)
     {
         imprimirPersona(lista1[i]);
@@ -240,7 +243,6 @@ void imprimirgrafico(EPersona lista[20])
         printf("\n");
     }
 
-    printf("<18  19-35  >35 \n");
 }
 
 /*void ordenamientoEstado(EPersona lista[20])
