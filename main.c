@@ -3,13 +3,6 @@
 #include <string.h>
 #include <windows.h>
 #include "funciones.h"
-#include <conio.h>
-#include <ctype.h>
-
-#define MAX 20
-#define VACIO 0
-#define ACTIVO 1
-#define BORRADO 2
 
 #define RED "\x1b[31m"
 #define YELLOW "\x1b[33m"
@@ -22,7 +15,6 @@
 int main()
 {
     EPersona lista[20];
-    EPersona listaaux[20];
     init(lista);
 
     char seguir = 's';
@@ -30,35 +22,57 @@ int main()
 
     while (seguir == 's')
     {
-        printf(CYAN "------------------------------------------------ \n" RESET);
-        printf(CYAN "|---> BIENVENIDO A TU AGENDA CODIFICADA <---| \n" RESET);
-        printf(CYAN "------------------------------------------------ \n \n" RESET);
+        printf( "------------------------------------------------ \n");
+        printf( "|---> BIENVENIDO A TU AGENDA CODIFICADA :3 <---| \n");
+        printf( "------------------------------------------------ \n \n");
 
         printf(RED "1- Agregar persona\n" RESET);
         printf(YELLOW "2- Borrar persona\n" RESET);
         printf(GREEN "3- Imprimir lista ordenada por nombre\n" RESET);
-        printf(BLUE "4- Imprimir grafico de edades\n" RESET);
-        printf(MAGENTA "5- Salir\n\n" RESET);
+        printf(CYAN "4- Imprimir lista activa\n" RESET);
+        printf(BLUE "5- Imprimir grafico de edades\n" RESET);
+        printf(MAGENTA "6- Buscar persona\n" RESET);
+        printf("7- Salir\n\n");
 
         scanf("%d", &opcion);
 
         switch (opcion)
         {
         case 1:
+        {
             alta(lista);
             break;
+        }
         case 2:
+        {
             baja(lista);
             break;
+        }
         case 3:
+        {
             mostrarOrdenado(lista);
             break;
+        }
         case 4:
-            imprimirgrafico(lista);
+        {
+            mostrarActivos(lista);
             break;
+        }
         case 5:
+        {
+            imprimirGrafico(lista);
+            break;
+        }
+        case 6:
+        {
+            buscar(lista);
+            break;
+        }
+        case 7:
+        {
             seguir = 'n';
             break;
+        }
         }
     }
     return 0;
