@@ -4,13 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <windows.h>
-#include <conio.h>
-#include <ctype.h>
 
 #define MAX 20
 #define VACIO 0
 #define OCUPADO 1
-#define BORRADO 2
 
 #define RED "\x1b[31m"
 #define YELLOW "\x1b[33m"
@@ -23,46 +20,61 @@
 typedef struct
 {
     char nombre[50];
+    char apellido[50];
     int edad;
     int dni;
     int estado;
 } EPersona;
 
 void init(EPersona lista[20]);
+void initMatriz(EPersona matriz[20][3]);
 void alta(EPersona lista[20]);
-void baja(EPersona lista[20]);
-void mostrarOrdenado(EPersona lista[20]);
-void imprimirgrafico(EPersona lista[20]);
-void ordenamiento(EPersona lista[20]);
-void colocarAll(EPersona listaaux[20], EPersona lista[20]);
 int buscardni(EPersona lista[20]);
+void baja(EPersona lista[20]);
+void colocarAll(EPersona listaaux[20], EPersona lista[20]);
+void ordenamiento(EPersona lista[20]);
+void mostrarOrdenado(EPersona lista[20]);
+void mostrarActivos(EPersona lista[20]);
+void separarEnMatriz(EPersona persona, EPersona personas[20][3], int columna);
+void separarEdad(EPersona lista[20], EPersona matriz[20][3]);
 void imprimirPersona(EPersona persona);
-void listasPorEdades(EPersona lista[20], EPersona lista18[20], EPersona lista19_35[20], EPersona lista35[20]);
-void separarPersona(EPersona lista[20], EPersona persona);
-/*void ordenamientoEstado(EPersona lista[20]);
-void validarDNI(EPersona lista[20]);
-void colocarOrden(EPersona listaaux[20], EPersona lista[20]);
-int soloNumero (char string[]);
-int validarNumero (char string[]);
-*/
-
+void imprimirMatriz(EPersona personas[20][3]);
+void imprimirGrafico(EPersona lista[20]);
+int buscarnombre(EPersona lista[20]);
+int buscarapellido(EPersona lista[20]);
+int busquedanombre(EPersona lista[20]);
+int busquedaapellido(EPersona lista[20]);
+int buscar(EPersona lista[20]);
 
 void init(EPersona lista[20])
 {
     for (int i = 0; i < MAX; i++)
     {
         strcpy(lista[i].nombre, "Vacio");
+        strcpy(lista[i].apellido, "Vacio");
         lista[i].edad = 0;
         lista[i].dni = 0;
         lista[i].estado = VACIO;
     }
 }
 
+void initMatriz(EPersona matriz[20][3])
+{
+    for (int i = 0; i < MAX; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            strcpy(matriz[i][j].nombre, "Vacio");
+            strcpy(matriz[i][j].apellido, "Vacio");
+            matriz[i][j].edad = 0;
+            matriz[i][j].dni = 0;
+            matriz[i][j].estado = VACIO;
+        }
+    }
+}
+
 void alta(EPersona lista[20])
 {
-    char aux1 [50];
-    char aux2 [50];
-
     printf(RED "Ingrese los datos correspondientes \n" RESET);
 
     for (int i = 0; i < MAX; i++)
@@ -72,15 +84,14 @@ void alta(EPersona lista[20])
             printf(YELLOW "Nombre: " RESET);
             scanf("%s", lista[i].nombre);
 
-            printf(GREEN "Edad: " RESET);
-            scanf("%d", &lista[i].edad); // strcpy, =, 
-            /*soloNumero(aux1);
-            validarNumero(aux1);*/
+            printf(GREEN "Apellido: " RESET);
+            scanf("%s", lista[i].apellido);
+
+            printf(CYAN "Edad: " RESET);
+            scanf("%d", &lista[i].edad);
 
             printf(BLUE "DNI: " RESET);
             scanf("%d", &lista[i].dni);
-            /*soloNumero(aux2);
-            validarNumero(aux2);*/
 
             lista[i].estado = OCUPADO;
 
@@ -115,26 +126,16 @@ void baja(EPersona lista[20])
 
     if (posicion != -1)
     {
-        lista[posicion].estado = BORRADO;
+        strcpy(lista[posicion].nombre, "Vacio");
+        strcpy(lista[posicion].apellido, "Vacio");
+        lista[posicion].edad = 0;
+        lista[posicion].dni = 0;
+        lista[posicion].estado = VACIO;
         printf(GREEN "El contacto se dio de baja correctamente!\n" RESET);
     }
     else
     {
         printf(RED "No se encuentra el contacto\n" RESET);
-    }
-}
-void mostrarOrdenado(EPersona lista[20])
-{
-    EPersona listaaux[20];
-    colocarAll(listaaux, lista);
-    ordenamiento(listaaux);
-    for (int i = 0; i < MAX; i++)
-    {
-        printf("%s %d %d",
-            listaaux[i].nombre,
-            listaaux[i].edad,
-            listaaux[i].dni);
-        printf(CYAN " %d \n" RESET, listaaux[i].estado);
     }
 }
 
@@ -143,6 +144,7 @@ void colocarAll(EPersona listaaux[20], EPersona lista[20])
     for (int i = 0; i < MAX; i++)
     {
         strcpy(listaaux[i].nombre, lista[i].nombre);
+        strcpy(listaaux[i].apellido, lista[i].apellido);
         listaaux[i].edad = lista[i].edad;
         listaaux[i].dni = lista[i].dni;
         listaaux[i].estado = lista[i].estado;
@@ -162,6 +164,9 @@ void ordenamiento(EPersona lista[20])
                 strcpy(auxn, lista[j].nombre);
                 strcpy(lista[j].nombre, lista[j + 1].nombre);
                 strcpy(lista[j + 1].nombre, auxn);
+                strcpy(auxn, lista[j].apellido);
+                strcpy(lista[j].apellido, lista[j + 1].apellido);
+                strcpy(lista[j + 1].apellido, auxn);
                 aux = lista[j].edad;
                 lista[j].edad = lista[j + 1].edad;
                 lista[j + 1].edad = aux;
@@ -176,17 +181,72 @@ void ordenamiento(EPersona lista[20])
     }
 }
 
-void separarPersona(EPersona lista[20], EPersona persona)
+void mostrarOrdenado(EPersona lista[20])
+{
+    EPersona listaaux[20];
+    colocarAll(listaaux, lista);
+    ordenamiento(listaaux);
+    for (int i = 0; i < MAX; i++)
+    {
+        printf("%s %s %d %d",
+            listaaux[i].nombre,
+            listaaux[i].apellido,
+            listaaux[i].edad,
+            listaaux[i].dni);
+        printf(CYAN " %d \n" RESET, listaaux[i].estado);
+    }
+}
+
+void mostrarActivos(EPersona lista[20])
+{
+    EPersona listaaux[20];
+    colocarAll(listaaux, lista);
+    ordenamiento(listaaux);
+    for (int i = 0; i < MAX; i++)
+    {
+        if (listaaux[i].estado == OCUPADO)
+        {
+            printf("%s %s %d %d",
+                listaaux[i].nombre,
+                listaaux[i].apellido,
+                listaaux[i].edad,
+                listaaux[i].dni);
+            printf(CYAN " %d \n" RESET, listaaux[i].estado);
+        }
+    }
+}
+
+void separarEnMatriz(EPersona persona, EPersona personas[20][3], int columna)
 {
     for (int i = 0; i < MAX; i++)
     {
-        if (lista[i].estado == VACIO)
+        if (personas[i][columna].estado == VACIO)
         {
-            strcpy(lista[i].nombre, persona.nombre);
-            lista[i].edad = persona.edad;
-            lista[i].dni = persona.dni;
-            lista[i].estado = persona.estado;
+            strcpy(personas[i][columna].nombre, persona.nombre);
+            strcpy(personas[i][columna].apellido, persona.apellido);
+            personas[i][columna].edad = persona.edad;
+            personas[i][columna].dni = persona.dni;
+            personas[i][columna].estado = persona.estado;
             break;
+        }
+    }
+}
+
+void separarEdad(EPersona lista[20], EPersona matriz[20][3])
+{
+    for (int i = 0; i < MAX; i++)
+    {
+        if (lista[i].edad <= 18)
+        {
+            separarEnMatriz(lista[i], matriz, 0);
+        }
+        if (lista[i].edad > 18 && lista[i].edad <= 35)
+        {
+            separarEnMatriz(lista[i], matriz, 1);
+        }
+        if (lista[i].edad > 35)
+        {
+            separarEnMatriz(lista[i], matriz, 2);
         }
     }
 }
@@ -195,127 +255,137 @@ void imprimirPersona(EPersona persona)
 {
     if (strcmp(persona.nombre, "Vacio"))
     {
-        printf(GREEN "  *   " RESET);
+        printf(GREEN "  *  " RESET);
     }
     else
     {
-        printf(" ");
+        printf("     ");
     }
 }
 
-void listasPorEdades(EPersona lista[20], EPersona lista18[20], EPersona lista19_35[20], EPersona lista35[20])
+void imprimirMatriz(EPersona personas[20][3])
 {
     for (int i = 0; i < MAX; i++)
     {
-        if (lista[i].edad <= 18)
+        for (int j = 0; j < 3; j++)
         {
-            separarPersona(lista18, lista[i]);
+            imprimirPersona(personas[i][j]);
         }
-        if (lista[i].edad > 18 && lista[i].edad <= 35)
-        {
-            separarPersona(lista19_35, lista[i]);
-        }
-        if (lista[i].edad > 35)
-        {
-            separarPersona(lista35, lista[i]);
-        }
-    }
-}
-
-void imprimirgrafico(EPersona lista[20])
-{
-    EPersona lista1[20];
-    EPersona lista2[20];
-    EPersona lista3[20];
-    init(lista1);
-    init(lista2);
-    init(lista3);
-    listasPorEdades(lista, lista1, lista2, lista3);
-
-    printf("Grafico de edades: \n \n");
-    printf("<18   19-35  >35 \n");
-
-    for (int i = 0; i < MAX; i++)
-    {
-        imprimirPersona(lista1[i]);
-        imprimirPersona(lista2[i]);
-        imprimirPersona(lista3[i]);
         printf("\n");
     }
-
 }
 
-/*void ordenamientoEstado(EPersona lista[20])
+void imprimirGrafico(EPersona lista[20])
 {
-    int aux;
+    EPersona personas[20][3];
+    initMatriz(personas);
+    separarEdad(lista, personas);
+
+    printf("Grafico de edades\n\n");
+
+    imprimirMatriz(personas);
+
+    printf("<18  19-35  >35 \n\n");
+}
+
+int buscarnombre(EPersona lista[20])
+{
+    int posicion = -1;
+    char buscNom[50];
+
+    printf("Ingrese el nombre: ");
+    scanf("%s", buscNom);
+
     for (int i = 0; i < MAX; i++)
     {
-        for (int j = 0; j < 19; j++)
+        if (lista[i].estado == OCUPADO && strcmp(lista[i].nombre, buscNom) == 0)
         {
-            if (lista[j]. estado < lista[j+1].estado)
-            {
-                aux = lista[j].estado;
-                lista[j].estado = lista[j + 1].estado;
-                lista[j + 1].estado = aux;
-            }
+            posicion = i;
+            break;
         }
     }
+    return posicion;
 }
 
-void colocarOrden(EPersona listaaux[20], EPersona lista[20])
+int buscarapellido(EPersona lista[20])
 {
+    int posicion = -1;
+    char busc[50];
+
+    printf("Ingrese el apellido: ");
+    scanf("%s", busc);
+
     for (int i = 0; i < MAX; i++)
     {
-        listaaux[i].estado = lista[i].estado;
-    }
-}
-
-void validarDNI(EPersona lista[20])
-{
-    for (int i = 0; i < MAX; i++)
-    {
-        if(lista[i].dni == lista[i].dni)
+        if (lista[i].estado == OCUPADO && strcmp(lista[i].apellido, busc) == 0)
         {
-            printf("No pueden existir dos contactos con el mismo DNI");
+            posicion = i;
+            break;
         }
     }
+    return posicion;
 }
 
-int soloNumero (char string[])
+int busquedanombre(EPersona lista[20])
 {
-    int a = 0, i = 0, j;
-    j = strlen(string);
+    int posicion = buscarnombre(lista);
 
-    while(i<j && a == 0)
+    if (posicion != -1)
     {
-        if(isdigit(string[i])!= 0)
-        {
-            i++;
-        }
-        else
-        {
-            a = 1;
-        }
-    }
-    
-    return a;
-}
-
-int validarNumero (char string[])
-{
-    char aux [50];
-    int a;
-
-    a = soloNumero(aux);
-
-    if (a == 0)
-    {
-        a = atoi(aux);
+        printf("%s %s %d %d",
+            lista[posicion].nombre,
+            lista[posicion].apellido,
+            lista[posicion].edad,
+            lista[posicion].dni);
+        printf(CYAN " %d \n" RESET, lista[posicion].estado);
     }
     else
     {
-        printf(RED "El dato ingresado no es un numero, por favor ingrese un numero \n" RESET);
+        printf("No se encontro a la persona\n");
     }
 }
-*/
+
+int busquedaapellido(EPersona lista[20])
+{
+    int posicion = buscarapellido(lista);
+
+    if (posicion != -1)
+    {
+        printf("%s %s %d %d",
+            lista[posicion].nombre,
+            lista[posicion].apellido,
+            lista[posicion].edad,
+            lista[posicion].dni);
+        printf(CYAN " %d \n" RESET, lista[posicion].estado);
+    }
+    else
+    {
+        printf("No se encontro a la persona\n");
+    }
+}
+
+int buscar(EPersona lista[20])
+{
+    int opcion = 0;
+
+    printf("1. Buscar por nombre: \n");
+    printf("2. Buscar por apellido: \n");
+
+    scanf("%d", &opcion);
+
+    switch (opcion)
+    {
+        case 1:
+        {
+            busquedanombre(lista);
+            break;
+        }
+        case 2:
+        {
+            busquedaapellido(lista);
+            break;
+        }
+    }
+}
+
 #endif // FUNCIONES_H_INCLUDEDS
